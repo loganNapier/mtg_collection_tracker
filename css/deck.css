@@ -1,0 +1,497 @@
+/*
+ * File:
+ * deck.css
+ *
+ * Purpose:
+ * For deck.php styling
+ *
+ */
+
+/* Color Variables */
+:root {
+  /* Element Colors */
+  --bg:     #0b0f14;
+  --panel:  #121a24;
+  --panel2: #0e141d;
+  --text:   #e8eef7;
+  --muted:  #9bb0c9;
+  --accent: #7cc4ff;
+  --border: #223246;
+  --danger: #ff6b6b;
+  --ok:     #72e6a6;
+
+  /* Focus Colors */
+  --focus:  0 0 0 3px rgba(124, 196, 255, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Nav Styling */
+
+a {
+  color: var(--text);
+}
+a:hover {
+  color: var(--accent);
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-color: rgba(124, 196, 255, 0.7);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+header {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--panel), var(--bg));
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap:10px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border);
+}
+
+/* Main Styling */
+
+main {
+  padding: 14px 0 26px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+h1, h2, h3 {
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.statusline {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.statusline.ok {
+  border-color: rgba(114, 230, 166, 0.35);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.06);
+}
+
+.statusline.bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.06);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.summaryItem {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.summaryItem .big {
+  font-weight: 900;
+  font-size: 1.35rem;
+}
+
+.small {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  color: var(--text);
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  background: var(--accent);
+  color:#04111c;
+}
+
+.btnSecondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 800;
+}
+
+.dangerBtn {
+  background: transparent;
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.55);
+  font-weight: 900;
+}
+
+.dangerBtn:hover {
+  border-color: rgba(255, 107, 107, 0.85);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.rowCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rowGrid {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.thumb {
+  width: 56px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  display: block;
+}
+
+.name {
+  font-weight: 900;
+}
+
+.owned-icon {
+  color: var(--ok);
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.editGrid {
+  display: grid;
+  grid-template-columns: 90px 140px 160px auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Inline search results */
+
+.results {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.result {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02); 
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.thumbWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.thumbLg {
+  width: 92px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  display: block;
+}
+
+.pop {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 12px;
+  width: 240px;
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  padding: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 5;
+}
+
+.pop img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.thumbWrap:hover .pop, .thumbWrap:focus-within .pop {
+  display: block;
+}
+
+
+.addControls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin-top: 10px;
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  padding: 14px 0;
+}
+/* Media Queries */
+
+@media  (min-width: 900px) {
+  
+    .summary {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  
+}
+
+@media (max-width: 520px) {
+  
+    .editGrid {
+      grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+  
+    .pop {
+      display: none !important;
+    }
+  
+}
+
+@media (min-width: 950px) {
+    
+    .grid {
+      grid-template-columns: .95fr 1.05fr;
+      align-items: start;
+    }
+  
+}
+/* ── Add these to deck.css ── */
+
+/* Pill variants */
+.pill--ok {
+  border-color: rgba(114, 230, 166, 0.45);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.08);
+}
+.pill--bad {
+  border-color: rgba(255, 107, 107, 0.45);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+/* Legality panel */
+.legalityPanel {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.legalityPanel--ok {
+  border-color: rgba(114, 230, 166, 0.4);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.06);
+}
+.legalityPanel--bad {
+  border-color: rgba(255, 107, 107, 0.4);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.06);
+}
+.legalityPanel--warn {
+  border-color: rgba(255, 196, 80, 0.4);
+  color: #ffc450;
+  background: rgba(255, 196, 80, 0.06);
+}
+.legalityTitle {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.legalityList {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  line-height: 1.7;
+}
+.legalityList--warn {
+  color: #ffc450;
+}
+.legalityList--warn li::marker {
+  content: "⚠ ";
+}
+
+/* Commander card highlight */
+.rowCard--commander {
+  border-color: rgba(124, 196, 255, 0.4);
+  background: rgba(124, 196, 255, 0.04);
+}
+.commander-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 196, 255, 0.4);
+  color: var(--accent);
+  background: rgba(124, 196, 255, 0.1);
+  margin-left: 6px;
+  vertical-align: middle;
+}

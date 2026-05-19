@@ -1,0 +1,541 @@
+/*
+ * File:
+ * batch_add.css
+ *
+ * Purpose:
+ * For batch_add.php styling
+ *
+ */
+
+/* ── Color Variables ────────────────────────────────────────────────────── */
+:root {
+  --bg:     #0b0f14;
+  --panel:  #121a24;
+  --panel2: #0e141d;
+  --text:   #e8eef7;
+  --muted:  #9bb0c9;
+  --accent: #7cc4ff;
+  --border: #223246;
+  --danger: #ff6b6b;
+  --ok:     #72e6a6;
+  --focus:  0 0 0 3px rgba(124, 196, 255, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* ── Links & Focus ──────────────────────────────────────────────────────── */
+
+a {
+  color: var(--text);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-color: rgba(124, 196, 255, 0.7);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+header {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--panel), var(--bg));
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border);
+}
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+
+main {
+  padding: 18px 0 28px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+h1, h2 {
+  margin: 0 0 10px;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+textarea, input, select {
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  color: var(--text);
+}
+
+textarea {
+  min-height: 170px;
+  resize: vertical;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+legend {
+  padding: 0 6px;
+  color: var(--muted);
+}
+
+/* ── Defaults grid (condition / language / finish) ──────────────────────── */
+
+.defaultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+button,
+.btn {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #04111c;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+button:hover,
+.btn:hover {
+  filter: brightness(1.1);
+}
+
+.btnSecondary,
+.btn.secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: 900;
+}
+
+.btnSecondary:hover,
+.btn.secondary:hover {
+  border-color: var(--muted);
+  filter: none;
+}
+
+.btn.danger {
+  background: transparent;
+  border-color: rgba(255, 107, 107, 0.5);
+  color: var(--danger);
+}
+
+.btn.danger:hover {
+  border-color: rgba(255, 107, 107, 0.8);
+  filter: none;
+}
+
+/* ── Status lines ───────────────────────────────────────────────────────── */
+
+.statusline {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.statusline.ok {
+  border-color: rgba(114, 230, 166, 0.35);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.06);
+}
+
+.statusline.bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.06);
+}
+
+/* ── Utilities ──────────────────────────────────────────────────────────── */
+
+.small {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+/* ── Card thumbnail hover pop ───────────────────────────────────────────── */
+
+.thumbWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.pop {
+  position: fixed;
+  width: 240px;
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  padding: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+}
+
+.pop img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.thumbWrap:hover .pop,
+.thumbWrap:focus-within .pop {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .pop {
+    display: none !important;
+  }
+}
+
+/* ── Per-card edit panel ────────────────────────────────────────────────── */
+
+.previewItemTop {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.batchEditPanel {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease, visibility 0s linear 0.3s;
+}
+
+.batchEditPanel.is-open {
+  max-height: 600px;
+  opacity: 1;
+  visibility: visible;
+  transition: max-height 0.3s ease, opacity 0.2s ease, visibility 0s linear 0s;
+}
+
+.batchEditInner {
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.batchEditGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.batchEditFull {
+  grid-column: 1 / -1;
+}
+
+.batchEditGrid label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.batchEditGrid input,
+.batchEditGrid select,
+.batchEditGrid textarea {
+  font-size: 0.88rem;
+  padding: 7px 9px;
+}
+
+.batchEditGrid textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+/* ── Preview grid ───────────────────────────────────────────────────────── */
+
+.previewList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.previewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.previewItem.notfound {
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.04);
+}
+
+.previewThumbWrap {
+  flex-shrink: 0;
+}
+
+.previewThumb {
+  width: 46px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  display: block;
+}
+
+.previewThumb.noImg {
+  background: #0c121a;
+}
+
+.previewMeta {
+  min-width: 0;
+}
+
+.previewName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.notFoundLabel {
+  color: var(--danger);
+}
+
+/* ── Variant tag pills ──────────────────────────────────────────────────── */
+
+.variantPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.variantTag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  white-space: nowrap;
+}
+
+.variantTag--finish {
+  color: #ffd97a;
+  border-color: rgba(255, 217, 122, 0.35);
+  background: rgba(255, 217, 122, 0.07);
+}
+
+.variantTag--lang {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.35);
+  background: rgba(167, 139, 250, 0.07);
+}
+
+.variantTag--special {
+  color: var(--ok);
+  border-color: rgba(114, 230, 166, 0.35);
+  background: rgba(114, 230, 166, 0.07);
+}
+
+/* ── Legacy preview table (kept for compatibility) ──────────────────────── */
+
+.preview {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.previewTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.previewTable td,
+.previewTable th {
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  vertical-align: top;
+}
+
+.previewCard {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.previewCard img {
+  width: 50px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.thumb {
+  width: 72px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+}
+
+.noImg {
+  width: 50px;
+  height: 70px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+
+footer {
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  padding: 14px 0;
+}
+
+/* ── Media Queries ──────────────────────────────────────────────────────── */
+
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}

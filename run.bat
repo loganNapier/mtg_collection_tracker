@@ -1,0 +1,1 @@
+php -d memory_limit=1024M -d max_execution_time=300 -S 0.0.0.0:8000

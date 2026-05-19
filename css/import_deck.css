@@ -1,0 +1,244 @@
+/*
+ * File:
+ * import_deck.css
+ *
+ * Purpose:
+ * For import_deck.php styling
+ *
+ */
+
+/* Color Variables */
+:root {
+  /* Element Colors */
+  --bg:     #0b0f14;
+  --panel:  #121a24;
+  --panel2: #0e141d;
+  --text:   #e8eef7;
+  --muted:  #9bb0c9;
+  --accent: #7cc4ff;
+  --border: #223246;
+  --danger: #ff6b6b;
+  --ok:     #72e6a6;
+
+  /* Focus Colors */
+  --focus:  0 0 0 3px rgba(124, 196, 255, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Nav Styling */
+
+a {
+  color: var(--text);
+}
+a:hover {
+  color: var(--accent);
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-color: rgba(124, 196, 255, 0.7);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+header {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--panel), var(--bg));
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap:10px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border);
+}
+
+/* Main Styling */
+
+main {
+  padding: 14px 0 26px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+h1, h2 {
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+textarea, select {
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  color: var(--text);
+}
+
+textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  background: var(--accent);
+  color: #04111c;
+}
+
+.btnSecondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 800;
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+.statusline {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.statusline.ok {
+  border-color: rgba(114, 230, 166, 0.35);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.06);
+}
+
+.statusline.bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.06);
+}
+
+.preview {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.itemGrid {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.thumb {
+  width: 72px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  display: block;
+}
+
+.small {
+  font-size: 0.92rem;
+  color: var(--muted);
+}

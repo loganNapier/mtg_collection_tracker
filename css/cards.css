@@ -1,0 +1,395 @@
+/*
+ * File:
+ * cards.css
+ *
+ * Purpose:
+ * For cards.php styling
+ *
+ */
+
+/* Color Variables */
+:root {
+  /* Element Colors */
+  --bg:     #0b0f14;
+  --panel:  #121a24;
+  --panel2: #0e141d;
+  --text:   #e8eef7;
+  --muted:  #9bb0c9;
+  --accent: #7cc4ff;
+  --border: #223246;
+  --danger: #ff6b6b;
+  --ok:     #72e6a6;
+
+  /* Focus Colors */
+  --focus:  0 0 0 3px rgba(124, 196, 255, 0.35);
+}
+  
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Nav Styling */
+
+a {
+  color: var(--text);
+}
+a:hover {
+  color: var(--accent);
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-color: rgba(124, 196, 255, 0.7);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+header {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--panel), var(--bg));
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap:10px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border);
+}
+
+/* Main Styling */
+
+main {
+  padding: 14px 0 26px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+h1, h2 {
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  color: var(--text);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  background: var(--accent);
+  color: #04111c;
+}
+
+.btnSecondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  font-weight: 800;
+}
+
+.statusline {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.statusline.ok {
+  border-color: rgba(114, 230, 166, 0.35);
+  color: var(--ok);
+  background: rgba(114, 230, 166, 0.06);
+}
+
+.statusline.bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.06);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.filterField .help {
+  margin-top: 6px;
+  min-height: 1.25em;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.filterField .help:empty {
+  visibility: hidden;
+}
+
+.rowActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.rowActions .help {
+  min-height: 1.25em;
+  margin-top: 6px;
+  visibility: hidden;
+}
+
+.results {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.result {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.thumbWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.thumb {
+  width: 92px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0c121a;
+  display: block;
+}
+
+.pop {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 12px;
+  width: 240px;
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  padding: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 5;
+}
+
+.pop img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.thumbWrap:hover .pop, .thumbWrap:focus-within .pop {
+  display:block;
+}
+
+.name {
+  font-weight: 900;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+.small {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.priceRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.priceTag {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.priceTag strong {
+  color: var(--text);
+}
+
+.addForm {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 120px 140px;
+  gap: 10px;
+  align-items: end;
+}
+
+.addForm .full {
+  grid-column: 1 / -1;
+}
+
+.checkRow {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.checkRow label {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* Media Styling */
+
+@media (min-width: 900px) {
+  
+    .filters {
+      grid-template-columns: 1.2fr 1fr 1fr auto;
+      align-items: start;
+    }
+  
+    .addForm {
+      grid-template-columns: 130px 160px 1fr;
+    }
+    
+    .addForm .full {
+      grid-column: auto;
+    }
+  
+}
+
+@media (max-width: 900px) {
+    
+    .pop {
+      display: none !important;
+    }
+  
+}
+
