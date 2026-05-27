@@ -148,11 +148,29 @@ function check_legality(string $format, array $main, array $side, int $mainQty, 
     $combinedCounts[$n] = ($combinedCounts[$n] ?? 0) + (int)$r['qty'];
   }
 
-  // name → row lookup for type_line and legalities
+  // name → row lookup for type_line and legalities.
+  // Prefer rows that have legality data over those that don't,
+  // to avoid a stale/empty row silently overwriting a good one.
   $cardRows = [];
   foreach (array_merge($main, $side) as $r) {
-    $cardRows[(string)$r['name']] = $r;
+    $name = (string)$r['name'];
+    $hasLegality = !empty($r['legalities']) && $r['legalities'] !== '{}';
+
+    if (!isset($cardRows[$name])) {
+      // First time we see this name — always store it.
+      $cardRows[$name] = $r;
+    } elseif ($hasLegality) {
+      // We already have a row for this name, but the new row has legality
+      // data and the existing one might not — prefer the one with data.
+      $existingHasLegality = !empty($cardRows[$name]['legalities']) && $cardRows[$name]['legalities'] !== '{}';
+      if (!$existingHasLegality) {
+        $cardRows[$name] = $r;
+      }
+    }
+    // If both have legality data, keep the first one (they should be identical
+    // for the same card name).
   }
+
   $typeLine = fn(string $name): string => (string)($cardRows[$name]['type_line'] ?? '');
 
   // ── Ban/restriction check (all formats with a Scryfall key) ──────────────

@@ -27,14 +27,14 @@ function back_with_flash(string $msg, int $deckId = 0): void {
 function pick_images(array $card): array {
   if (!empty($card['image_uris'])) {
     return [
-      'small' => (string)($card['image_uris']['small'] ?? ''),
+      'small'  => (string)($card['image_uris']['small']  ?? ''),
       'normal' => (string)($card['image_uris']['normal'] ?? ($card['image_uris']['small'] ?? '')),
     ];
   }
   if (!empty($card['card_faces'][0]['image_uris'])) {
     $f0 = $card['card_faces'][0]['image_uris'];
     return [
-      'small' => (string)($f0['small'] ?? ''),
+      'small'  => (string)($f0['small']  ?? ''),
       'normal' => (string)($f0['normal'] ?? ($f0['small'] ?? '')),
     ];
   }
@@ -84,11 +84,30 @@ function findCardNames(array $card): array {
   return array_values(array_unique($names, SORT_STRING));
 }
 
+// Layouts that are never legal deck cards and should be skipped during import.
+const NON_PLAYABLE_LAYOUTS = [
+  'art_series',         // art cards
+  'token',              // token cards
+  'double_faced_token', // double-faced tokens
+  'emblem',             // planeswalker emblems
+  'planar',             // Planechase planes
+  'scheme',             // Archenemy schemes
+  'vanguard',           // Vanguard cards
+  'augment',            // Conspiracy augment cards
+  'host',               // Unstable host cards
+];
+
 function findCardInLocalJson(string $query, array $allCards): ?array {
   $needle = mb_strtolower(trim($query));
 
+  $isPlayable = function(array $card): bool {
+    $layout = strtolower((string)($card['layout'] ?? ''));
+    return !in_array($layout, NON_PLAYABLE_LAYOUTS, true);
+  };
+
+  // Exact match first
   foreach ($allCards as $card) {
-    if (!isset($card['name'])) {
+    if (!isset($card['name']) || !$isPlayable($card)) {
       continue;
     }
 
@@ -99,8 +118,9 @@ function findCardInLocalJson(string $query, array $allCards): ?array {
     }
   }
 
+  // Partial match fallback
   foreach ($allCards as $card) {
-    if (!isset($card['name'])) {
+    if (!isset($card['name']) || !$isPlayable($card)) {
       continue;
     }
 
@@ -151,16 +171,16 @@ function parse_decklist_lines(string $raw): array {
       $line = trim($m[2]);
     }
 
-    $qty = 1;
+    $qty  = 1;
     $name = $line;
 
     // Extract quantity
     if (preg_match('/^(\d+)\s+(.+)$/', $line, $m)) {
-      $qty = max(1, min(999, (int)$m[1]));
+      $qty  = max(1, min(999, (int)$m[1]));
       $name = $m[2];
     }
 
-    // Strip set codes like (M21), [MH2], etc
+    // Strip set codes like (M21), [MH2], etc.
     $name = preg_replace('/[\(\[].*?[\)\]]/', '', $name);
 
     // Strip foil markers like *F*
@@ -176,11 +196,11 @@ function parse_decklist_lines(string $raw): array {
     $query = '!"' . str_replace('"', '\"', $name) . '"';
 
     $out[] = [
-      'raw' => $line,
+      'raw'     => $line,
       'section' => $section,
-      'qty' => $qty,
-      'name' => $name,
-      'query' => $query,
+      'qty'     => $qty,
+      'name'    => $name,
+      'query'   => $query,
     ];
   }
 
@@ -207,11 +227,10 @@ if (!$deck) {
   back_with_flash("Deck not found.", 0);
 }
 
-$mode = 'form'; // form | preview
-$preview = [];
-$rawDecklist = '';
-
-$defaultFinish = 'nonfoil';
+$mode           = 'form'; // form | preview
+$preview        = [];
+$rawDecklist    = '';
+$defaultFinish  = 'nonfoil';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (!csrf_check($_POST['csrf'] ?? null)) {
@@ -220,14 +239,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit("Bad CSRF token.");
   }
 
-  $action = (string)($_POST['action'] ?? 'preview');
+  $action        = (string)($_POST['action'] ?? 'preview');
   $defaultFinish = strtolower(trim((string)($_POST['finish'] ?? 'nonfoil')));
-  if (!in_array($defaultFinish, ['nonfoil','foil','etched'], true)) {
+  if (!in_array($defaultFinish, ['nonfoil', 'foil', 'etched'], true)) {
     back_with_flash("Finish must be nonfoil/foil/etched.", $deckId);
   }
 
   $rawDecklist = (string)($_POST['decklist'] ?? '');
 
+  // ── Preview ───────────────────────────────────────────────────────────────
   if ($action === 'preview') {
     $items = parse_decklist_lines($rawDecklist);
     if (!$items) back_with_flash("Paste a decklist first.", $deckId);
@@ -244,44 +264,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $card = findCardInLocalJson($it['name'], $allCards);
       if (!$card) {
         $preview[] = [
-          'ok' => false,
-          'raw' => $it['raw'],
+          'ok'      => false,
+          'raw'     => $it['raw'],
           'section' => $it['section'],
-          'qty' => $it['qty'],
-          'name' => $it['name'],
-          'error' => 'No match in local JSON.',
+          'qty'     => $it['qty'],
+          'name'    => $it['name'],
+          'error'   => 'No match in local JSON.',
         ];
         continue;
       }
 
       $img = pick_images($card);
 
+      // Encode legalities JSON; store null when absent so the DB column stays
+      // accurate and the legality checker in deck.php can trust the data.
+      $legalitiesRaw = !empty($card['legalities']) && is_array($card['legalities'])
+        ? json_encode($card['legalities'])
+        : null;
+
       $preview[] = [
-        'ok' => true,
-        'raw' => $it['raw'],
-        'section' => $it['section'],
-        'qty' => $it['qty'],
+        'ok'               => true,
+        'raw'              => $it['raw'],
+        'section'          => $it['section'],
+        'qty'              => $it['qty'],
 
-        'scryfall_id' => (string)($card['id'] ?? ''),
-        'oracle_id' => (string)($card['oracle_id'] ?? ''),
-        'name' => (string)($card['name'] ?? $it['name']),
-        'type_line' => (string)($card['type_line'] ?? ''),
-        'set_code' => strtoupper((string)($card['set'] ?? '')),
-        'set_name' => (string)($card['set_name'] ?? ''),
-        'collector_number' => (string)($card['collector_number'] ?? ''),
+        'scryfall_id'      => (string)($card['id']               ?? ''),
+        'oracle_id'        => (string)($card['oracle_id']         ?? ''),
+        // Always use the top-level name — never construct from card_faces,
+        // which would produce "Name // Name" for single-faced cards.
+        'name'             => (string)($card['name']              ?? $it['name']),
+        'type_line'        => (string)($card['type_line']         ?? ''),
+        'set_code'         => strtoupper((string)($card['set']    ?? '')),
+        'set_name'         => (string)($card['set_name']          ?? ''),
+        'collector_number' => (string)($card['collector_number']  ?? ''),
 
-        'image_small' => $img['small'],
-        'image_normal' => $img['normal'],
+        'image_small'      => $img['small'],
+        'image_normal'     => $img['normal'],
 
-        'price_usd' => (string)($card['prices']['usd'] ?? ''),
-        'price_usd_foil' => (string)($card['prices']['usd_foil'] ?? ''),
+        'price_usd'        => (string)($card['prices']['usd']        ?? ''),
+        'price_usd_foil'   => (string)($card['prices']['usd_foil']   ?? ''),
         'price_usd_etched' => (string)($card['prices']['usd_etched'] ?? ''),
+
+        'legalities'       => $legalitiesRaw,
       ];
     }
 
     $_SESSION['deck_preview'] = $preview;
   }
 
+  // ── Import ────────────────────────────────────────────────────────────────
   if ($action === 'import') {
     $items = $_SESSION['deck_preview'] ?? [];
     if (empty($items)) back_with_flash("No preview data. Use Preview first.", $deckId);
@@ -294,22 +325,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $upsertCard = $pdo->prepare("
         INSERT INTO cards
           (scryfall_id, oracle_id, name, type_line, set_code, set_name, collector_number,
-           image_small, image_normal, price_usd, price_usd_foil, price_usd_etched, price_updated_at)
+           image_small, image_normal, price_usd, price_usd_foil, price_usd_etched,
+           legalities, price_updated_at)
         VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ON DUPLICATE KEY UPDATE
-          oracle_id = VALUES(oracle_id),
-          name = VALUES(name),
-          type_line = VALUES(type_line),
-          set_code = VALUES(set_code),
-          set_name = VALUES(set_name),
-          collector_number = VALUES(collector_number),
-          image_small = VALUES(image_small),
-          image_normal = VALUES(image_normal),
-          price_usd = VALUES(price_usd),
-          price_usd_foil = VALUES(price_usd_foil),
-          price_usd_etched = VALUES(price_usd_etched),
-          price_updated_at = NOW()
+          oracle_id          = VALUES(oracle_id),
+          name               = VALUES(name),
+          type_line          = VALUES(type_line),
+          set_code           = VALUES(set_code),
+          set_name           = VALUES(set_name),
+          collector_number   = VALUES(collector_number),
+          image_small        = VALUES(image_small),
+          image_normal       = VALUES(image_normal),
+          price_usd          = VALUES(price_usd),
+          price_usd_foil     = VALUES(price_usd_foil),
+          price_usd_etched   = VALUES(price_usd_etched),
+          legalities         = VALUES(legalities),
+          price_updated_at   = NOW()
       ");
 
       $getCardId = $pdo->prepare("SELECT id FROM cards WHERE scryfall_id = ? LIMIT 1");
@@ -318,7 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         INSERT INTO deck_cards (deck_id, card_id, section, qty, finish)
         VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
-          qty = qty + VALUES(qty),
+          qty        = qty + VALUES(qty),
           updated_at = CURRENT_TIMESTAMP
       ");
 
@@ -328,28 +361,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_array($it) || empty($it['ok'])) continue;
 
         $scryfallId = trim((string)($it['scryfall_id'] ?? ''));
-        $name = trim((string)($it['name'] ?? ''));
-        $section = (string)($it['section'] ?? 'main');
-        $qty = (int)($it['qty'] ?? 1);
+        $name       = trim((string)($it['name']        ?? ''));
+        $section    = (string)($it['section']           ?? 'main');
+        $qty        = (int)($it['qty']                  ?? 1);
 
         if ($scryfallId === '' || $name === '') continue;
         if ($section !== 'side') $section = 'main';
-        if ($qty < 1) $qty = 1;
+        if ($qty < 1)   $qty = 1;
         if ($qty > 999) $qty = 999;
 
         $upsertCard->execute([
           $scryfallId,
-          (($it['oracle_id'] ?? '') !== '' ? (string)$it['oracle_id'] : null),
+          (($it['oracle_id']          ?? '') !== '' ? (string)$it['oracle_id']          : null),
           $name,
-          (($it['type_line'] ?? '') !== '' ? (string)$it['type_line'] : null),
-          (($it['set_code'] ?? '') !== '' ? (string)$it['set_code'] : null),
-          (($it['set_name'] ?? '') !== '' ? (string)$it['set_name'] : null),
-          (($it['collector_number'] ?? '') !== '' ? (string)$it['collector_number'] : null),
-          (($it['image_small'] ?? '') !== '' ? (string)$it['image_small'] : null),
-          (($it['image_normal'] ?? '') !== '' ? (string)$it['image_normal'] : null),
-          to_nullable_decimal_2((string)($it['price_usd'] ?? '')),
-          to_nullable_decimal_2((string)($it['price_usd_foil'] ?? '')),
+          (($it['type_line']          ?? '') !== '' ? (string)$it['type_line']           : null),
+          (($it['set_code']           ?? '') !== '' ? (string)$it['set_code']            : null),
+          (($it['set_name']           ?? '') !== '' ? (string)$it['set_name']            : null),
+          (($it['collector_number']   ?? '') !== '' ? (string)$it['collector_number']    : null),
+          (($it['image_small']        ?? '') !== '' ? (string)$it['image_small']         : null),
+          (($it['image_normal']       ?? '') !== '' ? (string)$it['image_normal']        : null),
+          to_nullable_decimal_2((string)($it['price_usd']        ?? '')),
+          to_nullable_decimal_2((string)($it['price_usd_foil']   ?? '')),
           to_nullable_decimal_2((string)($it['price_usd_etched'] ?? '')),
+          (($it['legalities']         ?? null) !== null ? (string)$it['legalities']      : null),
         ]);
 
         $getCardId->execute([$scryfallId]);
@@ -363,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $cardId,
           $section,
           $qty,
-          $defaultFinish
+          $defaultFinish,
         ]);
 
         $added++;
@@ -380,7 +414,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
-
 ?>
 <!doctype html>
 <html lang="en">
@@ -414,18 +447,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="small">
           Paste lines like <code>4 Lightning Bolt</code> or <code>SB: 2 Disenchant</code>.
           Use a blank line to separate mainboard from sideboard when no explicit header is provided.
-          We’ll look up each card on Scryfall.
+          We'll look up each card in the local Scryfall bulk data.
         </p>
 
         <form method="post" action="import_deck.php">
-          <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+          <input type="hidden" name="csrf"    value="<?= h(csrf_token()) ?>">
           <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
 
           <label for="finish">Default finish for imported cards</label>
           <select id="finish" name="finish">
             <option value="nonfoil"<?= $defaultFinish === 'nonfoil' ? ' selected' : '' ?>>Non-foil</option>
-            <option value="foil"<?= $defaultFinish === 'foil' ? ' selected' : '' ?>>Foil</option>
-            <option value="etched"<?= $defaultFinish === 'etched' ? ' selected' : '' ?>>Etched</option>
+            <option value="foil"<?=    $defaultFinish === 'foil'    ? ' selected' : '' ?>>Foil</option>
+            <option value="etched"<?=  $defaultFinish === 'etched'  ? ' selected' : '' ?>>Etched</option>
           </select>
 
           <label for="decklist">Decklist text</label>
@@ -456,7 +489,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <div class="itemGrid">
                     <div>
                       <?php if (!empty($p['image_small'])): ?>
-                        <img class="thumb" src="<?= h((string)$p['image_small']) ?>" alt="Card image: <?= h((string)$p['name']) ?>" loading="lazy">
+                        <img class="thumb" src="<?= h((string)$p['image_small']) ?>"
+                             alt="Card image: <?= h((string)$p['name']) ?>" loading="lazy">
                       <?php else: ?>
                         <div class="thumb" role="img" aria-label="No image available"></div>
                       <?php endif; ?>
@@ -467,6 +501,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       <div class="small">Section: <?= h((string)$p['section']) ?> • Qty: <?= (int)$p['qty'] ?></div>
                       <div class="small"><?= h((string)$p['set_name']) ?> <?= h((string)$p['set_code']) ?> #<?= h((string)$p['collector_number']) ?></div>
                       <div class="small">USD: <?= h((string)($p['price_usd'] ?: '—')) ?> • Foil: <?= h((string)($p['price_usd_foil'] ?: '—')) ?> • Etched: <?= h((string)($p['price_usd_etched'] ?: '—')) ?></div>
+                      <div class="small">Legalities: <?= $p['legalities'] !== null ? '<span style="color:var(--ok)">✓ stored</span>' : '<span style="color:var(--bad)">missing</span>' ?></div>
                       <div class="small">From: <code><?= h((string)$p['raw']) ?></code></div>
                     </div>
                   </div>
@@ -476,11 +511,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
 
           <form method="post" action="import_deck.php" style="margin-top:12px;">
-            <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+            <input type="hidden" name="csrf"    value="<?= h(csrf_token()) ?>">
             <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
-            <input type="hidden" name="finish" value="<?= h($defaultFinish) ?>">
-
-            <input type="hidden" name="action" value="import">
+            <input type="hidden" name="finish"  value="<?= h($defaultFinish) ?>">
+            <input type="hidden" name="action"  value="import">
 
             <div class="btnRow">
               <button type="submit">Import into deck</button>

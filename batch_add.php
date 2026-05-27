@@ -40,20 +40,43 @@ function findCardNames(array $card): array {
   return array_values(array_unique($names, SORT_STRING));
 }
 
+// Layouts that are never legal deck cards and should be skipped during lookup.
+const NON_PLAYABLE_LAYOUTS = [
+  'art_series',         // art cards
+  'token',              // token cards
+  'double_faced_token', // double-faced tokens
+  'emblem',             // planeswalker emblems
+  'planar',             // Planechase planes
+  'scheme',             // Archenemy schemes
+  'vanguard',           // Vanguard cards
+  'augment',            // Conspiracy augment cards
+  'host',               // Unstable host cards
+];
+
 function findCardInLocalJson(string $query, array $allCards): ?array {
   $needle = mb_strtolower(trim($query));
+
+  $isPlayable = function(array $card): bool {
+    $layout = strtolower((string)($card['layout'] ?? ''));
+    return !in_array($layout, NON_PLAYABLE_LAYOUTS, true);
+  };
+
+  // Exact match first
   foreach ($allCards as $card) {
-    if (!isset($card['name'])) continue;
+    if (!isset($card['name']) || !$isPlayable($card)) continue;
     foreach (findCardNames($card) as $name) {
       if (mb_strtolower($name) === $needle) return $card;
     }
   }
+
+  // Partial match fallback
   foreach ($allCards as $card) {
-    if (!isset($card['name'])) continue;
+    if (!isset($card['name']) || !$isPlayable($card)) continue;
     foreach (findCardNames($card) as $name) {
       if (mb_stripos($name, $query) !== false) return $card;
     }
   }
+
   return null;
 }
 
@@ -105,8 +128,8 @@ function parse_collection_csv(string $tmpPath): array {
       'notes'          => $get('notes')      ?: null,
       'scryfall_id'    => $get('scryfall id'),
       // Pre-filled price data from the CSV (no lookup needed)
-      'price_usd'        => $get('price (usd)')       ?: null,
-      'price_usd_foil'   => $get('price (usd foil)')  ?: null,
+      'price_usd'        => $get('price (usd)')        ?: null,
+      'price_usd_foil'   => $get('price (usd foil)')   ?: null,
       'price_usd_etched' => $get('price (usd etched)') ?: null,
       'set_code'         => strtoupper($get('set code')),
       'set_name'         => $get('set name'),
@@ -207,6 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $r['resolved']    = true;
         $r['scryfall_id'] = $id;
         $r['oracle_id']   = $card['oracle_id'] ?? null;
+        // Always use top-level name — never construct from card_faces,
+        // which produces "Name // Name" for single-faced cards.
         $r['name']        = $card['name'];
         $r['type_line']   = $card['type_line'] ?? null;
         $r['set_code']    = strtoupper($card['set'] ?? '');
@@ -221,6 +246,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $r['price_usd']        = $card['prices']['usd']        ?? null;
         $r['price_usd_foil']   = $card['prices']['usd_foil']   ?? null;
         $r['price_usd_etched'] = $card['prices']['usd_etched'] ?? null;
+        // Store legalities JSON so the legality checker has accurate data.
+        $r['legalities'] = !empty($card['legalities']) && is_array($card['legalities'])
+          ? json_encode($card['legalities'])
+          : null;
         return $r;
       }, $rows);
       // Re-index after array_map
@@ -243,8 +272,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $batch = $_SESSION['batch_preview'] ?? null;
     if (!$batch) back("No batch to import.");
 
-    $rows     = $batch['rows'];
-    $csvMode  = (bool)($batch['csv_mode'] ?? false);
+    $rows      = $batch['rows'];
+    $csvMode   = (bool)($batch['csv_mode'] ?? false);
     $condition = $batch['condition'];
     $language  = $batch['language'];
     $finish    = $batch['finish'];
@@ -254,14 +283,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($overrides as $idx => $ov) {
       $idx = (int)$idx;
       if (!isset($rows[$idx])) continue;
-      if (isset($ov['qty']))              $rows[$idx]['qty']            = max(1, min(999, (int)$ov['qty']));
-      if (isset($ov['card_condition']))   $rows[$idx]['card_condition'] = $ov['card_condition'];
-      if (isset($ov['finish']))           $rows[$idx]['finish']         = $ov['finish'];
-      if (isset($ov['set_code']))         $rows[$idx]['set_code']       = strtoupper(trim($ov['set_code']));
+      if (isset($ov['qty']))              $rows[$idx]['qty']              = max(1, min(999, (int)$ov['qty']));
+      if (isset($ov['card_condition']))   $rows[$idx]['card_condition']   = $ov['card_condition'];
+      if (isset($ov['finish']))           $rows[$idx]['finish']           = $ov['finish'];
+      if (isset($ov['set_code']))         $rows[$idx]['set_code']         = strtoupper(trim($ov['set_code']));
+      if (isset($ov['set_name']))         $rows[$idx]['set_name']         = trim($ov['set_name']);
       if (isset($ov['collector_number'])) $rows[$idx]['collector_number'] = trim($ov['collector_number']);
-      if (isset($ov['purchase_price']))   $rows[$idx]['purchase_price'] = $ov['purchase_price'] !== '' ? $ov['purchase_price'] : null;
-      if (isset($ov['acquired_at']))      $rows[$idx]['acquired_at']    = $ov['acquired_at'] !== '' ? $ov['acquired_at'] : null;
-      if (isset($ov['notes']))            $rows[$idx]['notes']          = $ov['notes'] !== '' ? $ov['notes'] : null;
+      if (isset($ov['purchase_price']))   $rows[$idx]['purchase_price']   = $ov['purchase_price'] !== '' ? $ov['purchase_price'] : null;
+      if (isset($ov['acquired_at']))      $rows[$idx]['acquired_at']      = $ov['acquired_at'] !== '' ? $ov['acquired_at'] : null;
+      if (isset($ov['notes']))            $rows[$idx]['notes']            = $ov['notes'] !== '' ? $ov['notes'] : null;
+      // If the user picked a different printing, swap in the new scryfall_id and
+      // clear cached image URLs so the upsert uses the correct card row.
+      if (!empty($ov['scryfall_id']) && $ov['scryfall_id'] !== ($rows[$idx]['scryfall_id'] ?? '')) {
+        $rows[$idx]['scryfall_id']  = trim($ov['scryfall_id']);
+        $rows[$idx]['image_small']  = null; // will be rebuilt from scryfall_id
+        $rows[$idx]['image_normal'] = null;
+      }
     }
 
     $batchId = bin2hex(random_bytes(8));
@@ -270,17 +307,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Oracle data was resolved during preview — no file load needed here
     $allCards = [];
-    $needsLookup = false;
 
     $upsertCard = $pdo->prepare("
       INSERT INTO cards (
         scryfall_id, oracle_id, name, type_line,
         set_code, set_name, collector_number,
         image_small, image_normal,
-        price_usd, price_usd_foil, price_usd_etched, price_updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        price_usd, price_usd_foil, price_usd_etched,
+        legalities, price_updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       ON DUPLICATE KEY UPDATE
-        name = VALUES(name),
+        name             = VALUES(name),
+        legalities       = VALUES(legalities),
         price_usd        = COALESCE(VALUES(price_usd),        price_usd),
         price_usd_foil   = COALESCE(VALUES(price_usd_foil),   price_usd_foil),
         price_usd_etched = COALESCE(VALUES(price_usd_etched), price_usd_etched)
@@ -312,43 +350,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             continue;
           }
 
-          // Try to find existing card row; if not, we need oracle data
+          // Try to find existing card row
           $getCardId->execute([$scryfallId]);
           $existingId = $getCardId->fetchColumn();
 
           if (!$existingId) {
-            // Card not in DB yet — try oracle lookup by scryfall_id
-            $card = null;
-            foreach ($allCards as $c) {
-              if (($c['id'] ?? '') === $scryfallId) { $card = $c; break; }
-            }
-
-            if ($card) {
-              $imgs = !empty($card['image_uris'])
-                ? [$card['image_uris']['small'] ?? null, $card['image_uris']['normal'] ?? null]
-                : [($card['card_faces'][0]['image_uris']['small'] ?? null), ($card['card_faces'][0]['image_uris']['normal'] ?? null)];
-            } else {
-              // Build URL from scryfall_id directly
-              $id   = $scryfallId;
-              $imgs = [
-                "https://cards.scryfall.io/small/front/{$id[0]}/{$id[1]}/{$id}.jpg",
-                "https://cards.scryfall.io/normal/front/{$id[0]}/{$id[1]}/{$id}.jpg",
-              ];
-            }
+            // Card not in DB yet — build image URLs from scryfall_id directly
+            $id   = $scryfallId;
+            $imgs = [
+              "https://cards.scryfall.io/small/front/{$id[0]}/{$id[1]}/{$id}.jpg",
+              "https://cards.scryfall.io/normal/front/{$id[0]}/{$id[1]}/{$id}.jpg",
+            ];
 
             $upsertCard->execute([
               $scryfallId,
               null,
               $r['query'],
               null,
-              $r['set_code']   ?: null,
-              $r['set_name']   ?: null,
+              $r['set_code']         ?: null,
+              $r['set_name']         ?: null,
               $r['collector_number'] ?: null,
               $imgs[0],
               $imgs[1],
               $r['price_usd']        ?: null,
               $r['price_usd_foil']   ?: null,
               $r['price_usd_etched'] ?: null,
+              null, // legalities not available from collection CSV export
             ]);
             $getCardId->execute([$scryfallId]);
             $existingId = $getCardId->fetchColumn();
@@ -383,22 +410,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             continue;
           }
 
+          $sid = $r['scryfall_id'];
+          // Rebuild image URLs if they were cleared by a set override
+          $imgSmall  = $r['image_small']  ?? null;
+          $imgNormal = $r['image_normal'] ?? null;
+          if (!$imgSmall || !$imgNormal) {
+            $imgSmall  = "https://cards.scryfall.io/small/front/{$sid[0]}/{$sid[1]}/{$sid}.jpg";
+            $imgNormal = "https://cards.scryfall.io/normal/front/{$sid[0]}/{$sid[1]}/{$sid}.jpg";
+          }
+
           $upsertCard->execute([
-            $r['scryfall_id'],
-            $r['oracle_id'] ?? null,
+            $sid,
+            $r['oracle_id']        ?? null,
             $r['name'],
-            $r['type_line'] ?? null,
-            $r['set_code']  ?? null,
-            $r['set_name']  ?? null,
+            $r['type_line']        ?? null,
+            $r['set_code']         ?? null,
+            $r['set_name']         ?? null,
             $r['collector_number'] ?? null,
-            $r['image_small']  ?? null,
-            $r['image_normal'] ?? null,
+            $imgSmall,
+            $imgNormal,
             $r['price_usd']        ?? null,
             $r['price_usd_foil']   ?? null,
             $r['price_usd_etched'] ?? null,
+            $r['legalities']       ?? null,
           ]);
 
-          $getCardId->execute([$r['scryfall_id']]);
+          $getCardId->execute([$sid]);
           $cardId = (int)$getCardId->fetchColumn();
 
           $upsertCollection->execute([
@@ -571,7 +608,7 @@ if (!empty($_SESSION['batch_preview'])) {
                 <div class="previewMeta">
                   <div class="previewName"><?= h($r['name'] ?? $r['query']) ?></div>
                   <?php if (!empty($r['set_name']) || !empty($r['set_code'])): ?>
-                    <div class="small">
+                    <div class="small" id="printingMeta-<?= $idx ?>">
                       <?= h($r['set_name'] ?? '') ?><?= !empty($r['set_code']) ? ' (' . h($r['set_code']) . ')' : '' ?>
                       <?= !empty($r['collector_number']) ? ' #' . h($r['collector_number']) : '' ?>
                     </div>
@@ -608,6 +645,19 @@ if (!empty($_SESSION['batch_preview'])) {
                     id="editBtn-<?= $idx ?>"
                     aria-expanded="false"
                     aria-controls="batchEdit-<?= $idx ?>">Edit</button>
+
+                  <!-- Hidden input so PHP receives the chosen scryfall_id on confirm -->
+                  <input type="hidden"
+                    id="ov_scryfall_id_<?= $idx ?>"
+                    name="overrides[<?= $idx ?>][scryfall_id]"
+                    value="<?= h($r['scryfall_id'] ?? '') ?>"
+                    form="confirmForm">
+                  <!-- Hidden input so PHP receives the chosen set_name on confirm -->
+                  <input type="hidden"
+                    id="ov_set_name_<?= $idx ?>"
+                    name="overrides[<?= $idx ?>][set_name]"
+                    value="<?= h($r['set_name'] ?? '') ?>"
+                    form="confirmForm">
                 </div><!-- /.previewMeta -->
                 </div><!-- /.previewItemTop -->
 
@@ -708,14 +758,167 @@ if (!empty($_SESSION['batch_preview'])) {
       pop.style.left = Math.round(rect.right + 8) + 'px';
     });
 
+    // Cache oracle_id → printings so we only fetch once per card
+    const printingsCache = {};
+
+    async function loadPrintings(panel) {
+      const oracleId  = panel.dataset.oracleId  || '';
+      const currentSet = panel.dataset.currentSet || '';
+      const setSelect  = panel.querySelector('select[name$="[set_code]"]');
+      const cnInput    = panel.querySelector('input[name$="[collector_number]"]');
+
+      if (!setSelect) return;
+
+      // No oracle_id — nothing to look up (e.g. collection CSV rows)
+      if (!oracleId) {
+        setSelect.innerHTML = '<option value="">— unknown —</option>';
+        setSelect.disabled = false;
+        return;
+      }
+
+      // Already loaded for this oracle_id
+      if (printingsCache[oracleId]) {
+        populateSetSelect(setSelect, printingsCache[oracleId], currentSet, cnInput, panel);
+        return;
+      }
+
+      setSelect.innerHTML = '<option value="">Loading…</option>';
+      setSelect.disabled = true;
+
+      try {
+        // Fetch all printings for this oracle_id from Scryfall
+        const url = `https://api.scryfall.com/cards/search?order=released&q=oracleid%3A${encodeURIComponent(oracleId)}&unique=prints`;
+        const res  = await fetch(url);
+        if (!res.ok) throw new Error('Scryfall error ' + res.status);
+        const data = await res.json();
+
+        const printings = (data.data || []).map(c => {
+          const id = c.id || '';
+          return {
+            set_code:         (c.set || '').toUpperCase(),
+            set_name:         c.set_name || '',
+            collector_number: c.collector_number || '',
+            released_at:      c.released_at || '',
+            scryfall_id:      id,
+            image_small:      c.image_uris?.small
+                           ?? c.card_faces?.[0]?.image_uris?.small
+                           ?? (id ? `https://cards.scryfall.io/small/front/${id[0]}/${id[1]}/${id}.jpg` : ''),
+            image_normal:     c.image_uris?.normal
+                           ?? c.card_faces?.[0]?.image_uris?.normal
+                           ?? (id ? `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg` : ''),
+          };
+        });
+
+        printingsCache[oracleId] = printings;
+        populateSetSelect(setSelect, printings, currentSet, cnInput, panel);
+
+      } catch (err) {
+        console.error('Failed to load printings:', err);
+        setSelect.innerHTML = '<option value="">— fetch failed —</option>';
+        setSelect.disabled = false;
+      }
+    }
+
+    function applyPrinting(printing, panel, cnInput) {
+      if (!panel) return;
+      const item = panel.closest('.previewItem');
+
+      // Update hidden scryfall_id override input
+      const sidInput = item?.querySelector('input[name$="[scryfall_id]"]');
+      if (sidInput) sidInput.value = printing.scryfall_id || '';
+
+      // Update hidden set_name override input
+      const snInput = item?.querySelector('input[name$="[set_name]"]');
+      if (snInput) snInput.value = printing.set_name || '';
+
+      // Update collector number
+      if (cnInput) cnInput.value = printing.collector_number || '';
+
+      // Update the visible set/collector description line under the card name
+      const metaEl = item?.querySelector('[id^="printingMeta-"]');
+      if (metaEl) {
+        const cn = printing.collector_number ? ` #${printing.collector_number}` : '';
+        metaEl.textContent = `${printing.set_name} (${printing.set_code})${cn}`;
+      }
+
+      // Swap card art in the preview thumbnail and hover pop
+      if (item) {
+        const thumb = item.querySelector('.previewThumb');
+        const pop   = item.querySelector('.pop img');
+        if (thumb && printing.image_small)  thumb.src = printing.image_small;
+        if (pop   && printing.image_normal) pop.src   = printing.image_normal;
+      }
+    }
+
+    function populateSetSelect(setSelect, printings, currentSet, cnInput, panel) {
+      setSelect.innerHTML = '';
+
+      if (!printings.length) {
+        setSelect.innerHTML = '<option value="">— no printings found —</option>';
+        setSelect.disabled = false;
+        return;
+      }
+
+      printings.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.set_code;
+        opt.textContent = `${p.set_name} (${p.set_code}) #${p.collector_number}`;
+        // Store all printing data on the option element
+        opt.dataset.collectorNumber = p.collector_number;
+        opt.dataset.scryfallId      = p.scryfall_id;
+        opt.dataset.setName         = p.set_name;
+        opt.dataset.imageSmall      = p.image_small;
+        opt.dataset.imageNormal     = p.image_normal;
+        if (p.set_code === currentSet.toUpperCase()) opt.selected = true;
+        setSelect.appendChild(opt);
+      });
+
+      setSelect.disabled = false;
+
+      // When the user picks a different printing, update art + scryfall_id + collector #
+      setSelect.addEventListener('change', () => {
+        const sel = setSelect.options[setSelect.selectedIndex];
+        if (!sel) return;
+        applyPrinting({
+          scryfall_id:      sel.dataset.scryfallId      || '',
+          set_name:         sel.dataset.setName         || '',
+          set_code:         sel.value                   || '',
+          collector_number: sel.dataset.collectorNumber || '',
+          image_small:      sel.dataset.imageSmall      || '',
+          image_normal:     sel.dataset.imageNormal     || '',
+        }, panel, cnInput);
+      });
+
+      // Apply the currently-selected option so collector # and scryfall_id
+      // are in sync from the moment the panel opens
+      const sel = setSelect.options[setSelect.selectedIndex];
+      if (sel) {
+        applyPrinting({
+          scryfall_id:      sel.dataset.scryfallId      || '',
+          set_name:         sel.dataset.setName         || '',
+          set_code:         sel.value                   || '',
+          collector_number: sel.dataset.collectorNumber || '',
+          image_small:      sel.dataset.imageSmall      || '',
+          image_normal:     sel.dataset.imageNormal     || '',
+        }, panel, cnInput);
+      }
+    }
+
     function toggleBatchEdit(idx) {
       const panel = document.getElementById('batchEdit-' + idx);
       const btn   = document.getElementById('editBtn-' + idx);
       if (!panel || !btn) return;
+
       const opening = !panel.classList.contains('is-open');
       panel.classList.toggle('is-open', opening);
       btn.setAttribute('aria-expanded', String(opening));
       btn.textContent = opening ? 'Close' : 'Edit';
+
+      // Load printings the first time the panel is opened
+      if (opening && !panel.dataset.printingsLoaded) {
+        panel.dataset.printingsLoaded = '1';
+        loadPrintings(panel);
+      }
     }
   </script>
 </body>
