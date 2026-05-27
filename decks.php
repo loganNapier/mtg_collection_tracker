@@ -151,40 +151,34 @@ include 'partials/header.php';
               <div class="list" role="list" aria-label="Deck list">
                 <?php foreach ($decks as $d): ?>
                   <article class="deckItem" role="listitem">
-                    <div class="deckTop">
-                      <div class="deckName">
-                        <?= h((string)$d['name']) ?>
-                        <?php if (!empty($d['is_fully_owned'])): ?>
-                          <span class="owned-icon" title="All cards owned in collection">✓</span>
-                        <?php endif; ?>
-                      </div>
-                      <div class="pill"><?= !empty($d['is_public']) ? 'Public' : 'Private' ?></div>
-                    </div>
+  <div class="deckThumb">
+    <?php if (!empty($d['image_small'])): ?>
+      <img src="<?= h($d['image_small']) ?>" alt="<?= h($d['card_name']) ?> preview">
+    <?php else: ?>
+      <div class="no-image">?</div>
+    <?php endif; ?>
+  </div>
 
-                    <div class="meta">
-                      <?php if (!empty($d['format'])): ?>
-                        <?= h((string)$d['format']) ?> •
-                      <?php endif; ?>
-                      Updated: <?= h((string)$d['updated_at']) ?>
-                    </div>
+  <div class="deckInfo">
+    <div class="deckNameRow">
+      <span class="deckName"><?= h((string)$d['name']) ?></span>
+      <?php if (!empty($d['is_fully_owned'])): ?>
+        <span class="owned-icon" title="All cards owned">✓</span>
+      <?php endif; ?>
+      <span class="pill"><?= !empty($d['is_public']) ? 'Public' : 'Private' ?></span>
+    </div>
+    <div class="meta">
+      <?php if (!empty($d['format'])): ?>
+        <span><?= h((string)$d['format']) ?></span> &bull;
+      <?php endif; ?>
+      <span>Updated: <?= h((string)$d['updated_at']) ?></span>
+    </div>
+  </div>
 
-                    <?php if (!empty($d['description'])): ?>
-                      <div class="meta"><?= h((string)$d['description']) ?></div>
-                    <?php endif; ?>
-
-                    <div class="actions" style="margin-top:10px;">
-                      <a class="btn secondary" href="deck.php?id=<?= (int)$d['id'] ?>">Open / edit</a>
-                    </div>
-
-                    <div class="deckPreview">
-                      <?php if (!empty($d['image_small'])): ?>
-                        <img src="<?= h($d['image_small']) ?>" alt="<?= h($d['card_name']) ?> preview">
-                      <?php else: ?>
-                        <div class="no-image">No cards</div>
-                      <?php endif; ?>
-                    </div>
-
-                  </article>
+  <div class="deckActions">
+    <a class="btn secondary" href="deck.php?id=<?= (int)$d['id'] ?>">Open</a>
+  </div>
+</article>
                 <?php endforeach; ?>
               </div>
             <?php endif; ?>

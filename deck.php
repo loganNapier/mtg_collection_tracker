@@ -582,6 +582,7 @@ include 'partials/header.php';
   window.CSRF_TOKEN = document.body.dataset.csrf;
   window.DECK_ID    = document.body.dataset.deckId;
   </script>
+  
   <script src="./js/deck.js"></script>
 
 </body>
