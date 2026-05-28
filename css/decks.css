@@ -7,7 +7,7 @@
  *
  */
 
-/* Color Variables */
+/* ── Color Variables ─────────────────────────────────────── */
 :root {
   /* Element Colors */
   --bg:     #0b0f14;
@@ -36,20 +36,24 @@ body {
   line-height: 1.5;
 }
 
-/* Nav Styling */
-
+/* ── Links & Focus ───────────────────────────────────────── */
 a {
   color: var(--text);
 }
 a:hover {
   color: var(--accent);
 }
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: none;
   box-shadow: var(--focus);
   border-color: rgba(124, 196, 255, 0.7);
 }
 
+/* ── Skip link ───────────────────────────────────────────── */
 .skip {
   position: absolute;
   left: -9999px;
@@ -58,7 +62,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   height: 1px;
   overflow: hidden;
 }
-
 .skip:focus {
   position: static;
   width: auto;
@@ -71,6 +74,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 12px;
 }
 
+/* ── Header ──────────────────────────────────────────────── */
 header {
   border-bottom: 1px solid var(--border);
   background: linear-gradient(90deg, var(--panel), var(--bg));
@@ -100,7 +104,7 @@ nav ul {
   margin: 0;
   padding: 0;
   display: flex;
-  gap:10px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -117,8 +121,7 @@ nav a:hover {
   border-color: var(--border);
 }
 
-/* Main Styling */
-
+/* ── Main ────────────────────────────────────────────────── */
 main {
   padding: 14px 0 26px;
 }
@@ -140,19 +143,20 @@ p {
   color: var(--muted);
 }
 
+/* ── Status / flash ──────────────────────────────────────── */
 .statusline {
   margin-top: 10px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
 }
-
 .statusline.ok {
   border-color: rgba(114, 230, 166, 0.35);
   color: var(--ok);
   background: rgba(114, 230, 166, 0.06);
 }
 
+/* ── Two-column grid ─────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -160,6 +164,7 @@ p {
   margin-top: 12px;
 }
 
+/* ── Form elements ───────────────────────────────────────── */
 label {
   display: block;
   margin: 10px 0 6px;
@@ -193,6 +198,7 @@ textarea {
   flex-wrap: wrap;
 }
 
+/* ── Buttons ─────────────────────────────────────────────── */
 .btn {
   display: inline-block;
   padding: 10px 12px;
@@ -213,71 +219,192 @@ textarea {
 }
 
 .btn:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.1);
 }
 
+/* ── Deck list container ─────────────────────────────────── */
 .list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
 }
 
+/* ════════════════════════════════════════════════════════════
+   DECK ITEM  —  horizontal card layout
+   ════════════════════════════════════════════════════════════ */
 .deckItem {
-  border: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+
+  border: 1px solid rgba(34, 50, 70, 0.9);
   border-radius: 14px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+  background: linear-gradient(100deg, #131d2b 0%, #0e1620 100%);
+  position: relative;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition: border-color .2s, box-shadow .2s, transform .15s;
 }
 
-.deckTop {
+.deckItem:hover {
+  border-color: rgba(124, 196, 255, 0.45);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6),
+              0 0 0 1px rgba(124, 196, 255, 0.12),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Accent strip — faint at rest, bright on hover */
+.deckItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0.2;
+  transition: opacity .2s;
+  z-index: 1;
+}
+
+.deckItem:hover::before {
+  opacity: 1;
+}
+
+/* ── Card art thumbnail ── */
+.deckThumb {
+  width: 64px;
+  height: 88px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #070c12;
+}
+
+.deckThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%; /* show card art, not the rules text box */
+  display: block;
+  transition: transform .35s ease;
+}
+
+.deckItem:hover .deckThumb img {
+  transform: scale(1.08);
+}
+
+.deckThumb .no-image {
+  width: 100%;
+  height: 100%;
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--border);
+  background: var(--panel2);
+}
+
+/* ── Info column ── */
+.deckInfo {
+  padding: .6rem .85rem;
+  min-width: 0;
+}
+
+.deckNameRow {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
   flex-wrap: wrap;
-  align-items: baseline;
+  margin-bottom: .25rem;
 }
 
 .deckName {
   font-weight: 900;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 24ch;
 }
 
+/* "All cards owned" checkmark badge */
 .owned-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(114, 230, 166, 0.12);
+  border: 1px solid var(--ok);
   color: var(--ok);
-  font-weight: bold;
-  margin-left: 8px;
+  font-size: .68rem;
+  font-weight: 900;
+  flex-shrink: 0;
 }
 
-.meta {
-  color: var(--muted);
-  font-size: 0.92rem;
-  margin-top: 6px;
-}
-
-
+/* Public / Private pill */
 .pill {
   display: inline-block;
-  padding: 6px 10px;
+  padding: .15em .55em;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
-/* Media Queries */
-
-@media (min-width: 900px) {
-  
-    .grid {
-      grid-template-columns: .9fr 1.1fr;
-      align-items: start;
-    }
-  
+/* Meta line */
+.meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  flex-wrap: wrap;
 }
 
-@media (min-width: 900px) {
-  
-    .row {
-      grid-template-columns: 1fr 1fr;
-    }
+/* CSS dot separator between meta spans */
+.meta span + span::before {
+  content: '·';
+  margin-right: .3rem;
+  color: var(--border);
+}
 
+/* ── Actions column ── */
+.deckActions {
+  padding: .6rem .85rem .6rem .4rem;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: .9fr 1.1fr;
+    align-items: start;
+  }
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Stack actions below info on very small screens */
+@media (max-width: 480px) {
+  .deckItem {
+    grid-template-columns: 56px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .deckThumb { height: 76px; }
+  .deckActions {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0 .85rem .7rem;
+  }
 }

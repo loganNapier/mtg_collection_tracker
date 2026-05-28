@@ -106,6 +106,8 @@ include 'partials/header.php';
         <?php endif; ?>
 
         <div class="grid" aria-label="Deck management">
+
+          <!-- ── Create deck form ── -->
           <section class="card" aria-labelledby="createTitle">
             <h2 id="createTitle">Create a deck</h2>
 
@@ -128,61 +130,72 @@ include 'partials/header.php';
                   <label for="is_public">Visibility</label>
                   <select id="is_public" name="is_public">
                     <option value="0">Private</option>
-                    <option value="1">Public (optional)</option>
+                    <option value="1">Public</option>
                   </select>
                 </div>
               </div>
 
               <label for="description">Notes (optional)</label>
-              <textarea id="description" name="description" maxlength="800" placeholder="Strategy, budget, upgrade ideas…"></textarea>
+              <textarea id="description" name="description" maxlength="800"
+                        placeholder="Strategy, budget, upgrade ideas…"></textarea>
 
-              <div class="actions" style="margin-top:10px;">
+              <div class="actions" style="margin-top:1rem;">
                 <button class="btn" type="submit">Create deck</button>
               </div>
             </form>
           </section>
 
+          <!-- ── Deck list ── -->
           <section class="card" aria-labelledby="listTitle">
             <h2 id="listTitle">Your decks</h2>
 
             <?php if (!$decks): ?>
-              <p>You don't have any decks yet. Create one using the form.</p>
+              <p style="color:var(--text-muted);font-size:.9rem;">
+                You don't have any decks yet. Create one using the form.
+              </p>
             <?php else: ?>
               <div class="list" role="list" aria-label="Deck list">
                 <?php foreach ($decks as $d): ?>
-                  <article class="deckItem" role="listitem">
-  <div class="deckThumb">
-    <?php if (!empty($d['image_small'])): ?>
-      <img src="<?= h($d['image_small']) ?>" alt="<?= h($d['card_name']) ?> preview">
-    <?php else: ?>
-      <div class="no-image">?</div>
-    <?php endif; ?>
-  </div>
+                <article class="deckItem" role="listitem">
 
-  <div class="deckInfo">
-    <div class="deckNameRow">
-      <span class="deckName"><?= h((string)$d['name']) ?></span>
-      <?php if (!empty($d['is_fully_owned'])): ?>
-        <span class="owned-icon" title="All cards owned">✓</span>
-      <?php endif; ?>
-      <span class="pill"><?= !empty($d['is_public']) ? 'Public' : 'Private' ?></span>
-    </div>
-    <div class="meta">
-      <?php if (!empty($d['format'])): ?>
-        <span><?= h((string)$d['format']) ?></span> &bull;
-      <?php endif; ?>
-      <span>Updated: <?= h((string)$d['updated_at']) ?></span>
-    </div>
-  </div>
+                  <!-- Card art thumbnail -->
+                  <div class="deckThumb">
+                    <?php if (!empty($d['image_small'])): ?>
+                      <img src="<?= h($d['image_small']) ?>"
+                           alt="<?= h($d['card_name']) ?> card art">
+                    <?php else: ?>
+                      <div class="no-image">?</div>
+                    <?php endif; ?>
+                  </div>
 
-  <div class="deckActions">
-    <a class="btn secondary" href="deck.php?id=<?= (int)$d['id'] ?>">Open</a>
-  </div>
-</article>
+                  <!-- Name, badges, meta -->
+                  <div class="deckInfo">
+                    <div class="deckNameRow">
+                      <span class="deckName"><?= h((string)$d['name']) ?></span>
+                      <?php if (!empty($d['is_fully_owned'])): ?>
+                        <span class="owned-icon" title="All cards owned">✓</span>
+                      <?php endif; ?>
+                      <span class="pill"><?= !empty($d['is_public']) ? 'Public' : 'Private' ?></span>
+                    </div>
+                    <div class="meta">
+                      <?php if (!empty($d['format'])): ?>
+                        <span><?= h((string)$d['format']) ?></span>
+                      <?php endif; ?>
+                      <span>Updated <?= h(date('M j, Y', strtotime((string)$d['updated_at']))) ?></span>
+                    </div>
+                  </div>
+
+                  <!-- Open button -->
+                  <div class="deckActions">
+                    <a class="btn secondary" href="deck.php?id=<?= (int)$d['id'] ?>">Open</a>
+                  </div>
+
+                </article>
                 <?php endforeach; ?>
               </div>
             <?php endif; ?>
           </section>
+
         </div>
       </section>
 
