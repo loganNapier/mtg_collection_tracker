@@ -56,6 +56,16 @@ $imageNormal = trim($_POST['image_normal'] ?? '') ?: null;
 $priceUsd = decimal_2_or_null($_POST['price_usd'] ?? '');
 $priceUsdFoil = decimal_2_or_null($_POST['price_usd_foil'] ?? '');
 $priceUsdEtched = decimal_2_or_null($_POST['price_usd_etched'] ?? '');
+$legalitiesRaw = trim((string)($_POST['legalities'] ?? ''));
+if ($legalitiesRaw === '') {
+    $legalities = null;
+} else {
+    $legalitiesDecoded = json_decode($legalitiesRaw, true);
+    if (!is_array($legalitiesDecoded)) {
+        back("Invalid legalities data.");
+    }
+    $legalities = json_encode($legalitiesDecoded, JSON_UNESCAPED_SLASHES);
+}
 
 /* ======================
    COLLECTION FIELDS
@@ -115,8 +125,8 @@ try {
         INSERT INTO cards
         (scryfall_id, oracle_id, name, type_line, set_code, set_name,
          collector_number, image_small, image_normal,
-         price_usd, price_usd_foil, price_usd_etched, price_updated_at)
-        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+         price_usd, price_usd_foil, price_usd_etched, price_updated_at, legalities)
+        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
         ON DUPLICATE KEY UPDATE
             name = VALUES(name),
             type_line = VALUES(type_line),
@@ -128,7 +138,8 @@ try {
             price_usd = VALUES(price_usd),
             price_usd_foil = VALUES(price_usd_foil),
             price_usd_etched = VALUES(price_usd_etched),
-            price_updated_at = NOW()
+            price_updated_at = NOW(),
+            legalities = VALUES(legalities)
     ");
 
     $stmt->execute([
@@ -142,7 +153,8 @@ try {
         $imageNormal,
         $priceUsd,
         $priceUsdFoil,
-        $priceUsdEtched
+        $priceUsdEtched,
+        $legalities
     ]);
 
     $cardId = $pdo->lastInsertId();

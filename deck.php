@@ -431,7 +431,12 @@ include 'partials/header.php';
         </section>
 
         <section class="card" aria-labelledby="listTitle">
-          <h2 id="listTitle">Decklist (editable)</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+            <h2 id="listTitle" style="margin:0;">Decklist</h2>
+            <button type="button" id="editAllBtn" class="btnSecondary" style="font-size:0.9rem;padding:7px 14px;">
+              ✏️ Edit mode
+            </button>
+          </div>
 
           <h3>Mainboard (<?= (int)$mainQty ?>)</h3>
           <?php if (!$main): ?>
@@ -442,16 +447,22 @@ include 'partials/header.php';
                 $p = finish_price($r);
                 $deckCardId = (int)$r['deck_card_id'];
               ?>
-                <article class="rowCard" role="listitem">
-                  <div class="rowGrid">
-                    <div>
+                <article class="rowCard" role="listitem" data-deck-card="<?= $deckCardId ?>">
+                  <!-- Compact view row (shown when not editing) -->
+                  <div class="cardViewRow">
+                    <div class="thumbWrap">
                       <?php if (!empty($r['image_small'])): ?>
                         <img class="thumb" src="<?= h((string)$r['image_small']) ?>" alt="<?= h((string)$r['name']) ?>" loading="lazy">
+                        <?php if (!empty($r['image_normal'])): ?>
+                          <div class="pop" aria-hidden="true">
+                            <img src="<?= h((string)$r['image_normal']) ?>" alt="">
+                          </div>
+                        <?php endif; ?>
                       <?php else: ?>
                         <div class="thumb" role="img" aria-label="No image"></div>
                       <?php endif; ?>
                     </div>
-                    <div>
+                    <div class="cardViewInfo">
                       <div class="name">
                         <?= h((string)$r['name']) ?>
                         <?php if ((int)$r['owned_qty'] >= (int)$r['qty']): ?>
@@ -460,38 +471,45 @@ include 'partials/header.php';
                       </div>
                       <div class="small"><?= h((string)($r['type_line'] ?? '')) ?></div>
                       <div class="small">Price: <?= $p === null ? '—' : h(money_val((string)$p)) ?></div>
-                      <form action="deck_config/update_deck_card.php" method="post" style="margin-top:10px;">
-                        <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-                        <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
-                        <input type="hidden" name="deck_card_id" value="<?= $deckCardId ?>">
-                        <div class="editGrid">
-                          <div>
-                            <label for="qty-<?= $deckCardId ?>">Qty</label>
-                            <input id="qty-<?= $deckCardId ?>" name="qty" type="number" min="0" max="999" value="<?= (int)$r['qty'] ?>">
-                          </div>
-                          <div>
-                            <label for="sec-<?= $deckCardId ?>">Section</label>
-                            <select id="sec-<?= $deckCardId ?>" name="section">
-                              <option value="main" selected>Mainboard</option>
-                              <option value="side"><?= $isCmdrFmt ? 'Commander' : 'Sideboard' ?></option>
-                            </select>
-                          </div>
-                          <div>
-                            <label for="fin-<?= $deckCardId ?>">Finish</label>
-                            <select id="fin-<?= $deckCardId ?>" name="finish">
-                              <option value="nonfoil"<?= $r['finish']==='nonfoil'?' selected':'' ?>>Non-foil</option>
-                              <option value="foil"<?= $r['finish']==='foil'?' selected':'' ?>>Foil</option>
-                              <option value="etched"<?= $r['finish']==='etched'?' selected':'' ?>>Etched</option>
-                            </select>
-                          </div>
-                          <div class="btnRow">
-                            <button type="submit" name="action" value="update">Save</button>
-                            <button type="submit" name="action" value="delete" class="dangerBtn">Remove</button>
-                          </div>
-                        </div>
-                        <div class="small" style="margin-top:8px;">Updated: <?= h((string)$r['updated_at']) ?></div>
-                      </form>
                     </div>
+                    <div class="cardViewRight">
+                      <span class="qtyBadge"><?= (int)$r['qty'] ?>×</span>
+                      <button type="button" class="btnSecondary editCardBtn" aria-expanded="false" style="font-size:0.82rem;padding:5px 10px;">Edit</button>
+                    </div>
+                  </div>
+                  <!-- Edit form (hidden by default) -->
+                  <div class="cardEditPanel" hidden>
+                    <form action="deck_config/update_deck_card.php" method="post" style="margin-top:10px;">
+                      <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                      <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
+                      <input type="hidden" name="deck_card_id" value="<?= $deckCardId ?>">
+                      <div class="editGrid">
+                        <div>
+                          <label for="qty-<?= $deckCardId ?>">Qty</label>
+                          <input id="qty-<?= $deckCardId ?>" name="qty" type="number" min="0" max="999" value="<?= (int)$r['qty'] ?>">
+                        </div>
+                        <div>
+                          <label for="sec-<?= $deckCardId ?>">Section</label>
+                          <select id="sec-<?= $deckCardId ?>" name="section">
+                            <option value="main" selected>Mainboard</option>
+                            <option value="side"><?= $isCmdrFmt ? 'Commander' : 'Sideboard' ?></option>
+                          </select>
+                        </div>
+                        <div>
+                          <label for="fin-<?= $deckCardId ?>">Finish</label>
+                          <select id="fin-<?= $deckCardId ?>" name="finish">
+                            <option value="nonfoil"<?= $r['finish']==='nonfoil'?' selected':'' ?>>Non-foil</option>
+                            <option value="foil"<?= $r['finish']==='foil'?' selected':'' ?>>Foil</option>
+                            <option value="etched"<?= $r['finish']==='etched'?' selected':'' ?>>Etched</option>
+                          </select>
+                        </div>
+                        <div class="btnRow">
+                          <button type="submit" name="action" value="update">Save</button>
+                          <button type="submit" name="action" value="delete" class="dangerBtn">Remove</button>
+                        </div>
+                      </div>
+                      <div class="small" style="margin-top:8px;">Updated: <?= h((string)$r['updated_at']) ?></div>
+                    </form>
                   </div>
                 </article>
               <?php endforeach; ?>
@@ -514,16 +532,22 @@ include 'partials/header.php';
                 $deckCardId = (int)$r['deck_card_id'];
                 $isCommander = $isCmdrFmt && (int)$r['qty'] === 1;
               ?>
-                <article class="rowCard <?= $isCommander ? 'rowCard--commander' : '' ?>" role="listitem">
-                  <div class="rowGrid">
-                    <div>
+                <article class="rowCard <?= $isCommander ? 'rowCard--commander' : '' ?>" role="listitem" data-deck-card="<?= $deckCardId ?>">
+                  <!-- Compact view row (shown when not editing) -->
+                  <div class="cardViewRow">
+                    <div class="thumbWrap">
                       <?php if (!empty($r['image_small'])): ?>
                         <img class="thumb" src="<?= h((string)$r['image_small']) ?>" alt="<?= h((string)$r['name']) ?>" loading="lazy">
+                        <?php if (!empty($r['image_normal'])): ?>
+                          <div class="pop" aria-hidden="true">
+                            <img src="<?= h((string)$r['image_normal']) ?>" alt="">
+                          </div>
+                        <?php endif; ?>
                       <?php else: ?>
                         <div class="thumb" role="img" aria-label="No image"></div>
                       <?php endif; ?>
                     </div>
-                    <div>
+                    <div class="cardViewInfo">
                       <div class="name">
                         <?= h((string)$r['name']) ?>
                         <?php if ($isCommander): ?>
@@ -534,38 +558,45 @@ include 'partials/header.php';
                       </div>
                       <div class="small"><?= h((string)($r['type_line'] ?? '')) ?></div>
                       <div class="small">Price: <?= $p === null ? '—' : h(money_val((string)$p)) ?></div>
-                      <form action="deck_config/update_deck_card.php" method="post" style="margin-top:10px;">
-                        <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-                        <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
-                        <input type="hidden" name="deck_card_id" value="<?= $deckCardId ?>">
-                        <div class="editGrid">
-                          <div>
-                            <label for="qty-<?= $deckCardId ?>">Qty</label>
-                            <input id="qty-<?= $deckCardId ?>" name="qty" type="number" min="0" max="999" value="<?= (int)$r['qty'] ?>">
-                          </div>
-                          <div>
-                            <label for="sec-<?= $deckCardId ?>">Section</label>
-                            <select id="sec-<?= $deckCardId ?>" name="section">
-                              <option value="main">Mainboard</option>
-                              <option value="side" selected><?= $isCmdrFmt ? 'Commander' : 'Sideboard' ?></option>
-                            </select>
-                          </div>
-                          <div>
-                            <label for="fin-<?= $deckCardId ?>">Finish</label>
-                            <select id="fin-<?= $deckCardId ?>" name="finish">
-                              <option value="nonfoil"<?= $r['finish']==='nonfoil'?' selected':'' ?>>Non-foil</option>
-                              <option value="foil"<?= $r['finish']==='foil'?' selected':'' ?>>Foil</option>
-                              <option value="etched"<?= $r['finish']==='etched'?' selected':'' ?>>Etched</option>
-                            </select>
-                          </div>
-                          <div class="btnRow">
-                            <button type="submit" name="action" value="update">Save</button>
-                            <button type="submit" name="action" value="delete" class="dangerBtn">Remove</button>
-                          </div>
-                        </div>
-                        <div class="small" style="margin-top:8px;">Updated: <?= h((string)$r['updated_at']) ?></div>
-                      </form>
                     </div>
+                    <div class="cardViewRight">
+                      <span class="qtyBadge"><?= (int)$r['qty'] ?>×</span>
+                      <button type="button" class="btnSecondary editCardBtn" aria-expanded="false" style="font-size:0.82rem;padding:5px 10px;">Edit</button>
+                    </div>
+                  </div>
+                  <!-- Edit form (hidden by default) -->
+                  <div class="cardEditPanel" hidden>
+                    <form action="deck_config/update_deck_card.php" method="post" style="margin-top:10px;">
+                      <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                      <input type="hidden" name="deck_id" value="<?= (int)$deckId ?>">
+                      <input type="hidden" name="deck_card_id" value="<?= $deckCardId ?>">
+                      <div class="editGrid">
+                        <div>
+                          <label for="qty-<?= $deckCardId ?>">Qty</label>
+                          <input id="qty-<?= $deckCardId ?>" name="qty" type="number" min="0" max="999" value="<?= (int)$r['qty'] ?>">
+                        </div>
+                        <div>
+                          <label for="sec-<?= $deckCardId ?>">Section</label>
+                          <select id="sec-<?= $deckCardId ?>" name="section">
+                            <option value="main">Mainboard</option>
+                            <option value="side" selected><?= $isCmdrFmt ? 'Commander' : 'Sideboard' ?></option>
+                          </select>
+                        </div>
+                        <div>
+                          <label for="fin-<?= $deckCardId ?>">Finish</label>
+                          <select id="fin-<?= $deckCardId ?>" name="finish">
+                            <option value="nonfoil"<?= $r['finish']==='nonfoil'?' selected':'' ?>>Non-foil</option>
+                            <option value="foil"<?= $r['finish']==='foil'?' selected':'' ?>>Foil</option>
+                            <option value="etched"<?= $r['finish']==='etched'?' selected':'' ?>>Etched</option>
+                          </select>
+                        </div>
+                        <div class="btnRow">
+                          <button type="submit" name="action" value="update">Save</button>
+                          <button type="submit" name="action" value="delete" class="dangerBtn">Remove</button>
+                        </div>
+                      </div>
+                      <div class="small" style="margin-top:8px;">Updated: <?= h((string)$r['updated_at']) ?></div>
+                    </form>
                   </div>
                 </article>
               <?php endforeach; ?>
@@ -584,6 +615,51 @@ include 'partials/header.php';
   </script>
   
   <script src="./js/deck.js"></script>
+
+  <script>
+  (function () {
+    // ── Per-card Edit button ──────────────────────────────────────────────────
+    function openCard(article) {
+      article.querySelector('.cardEditPanel').hidden = false;
+      const btn = article.querySelector('.editCardBtn');
+      btn.textContent = 'Close';
+      btn.setAttribute('aria-expanded', 'true');
+      article.classList.add('is-editing');
+    }
+    function closeCard(article) {
+      article.querySelector('.cardEditPanel').hidden = true;
+      const btn = article.querySelector('.editCardBtn');
+      btn.textContent = 'Edit';
+      btn.setAttribute('aria-expanded', 'false');
+      article.classList.remove('is-editing');
+    }
+
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.editCardBtn');
+      if (!btn) return;
+      const article = btn.closest('[data-deck-card]');
+      if (!article) return;
+      const isOpen = article.classList.contains('is-editing');
+      isOpen ? closeCard(article) : openCard(article);
+    });
+
+    // ── Edit All / Done toggle ────────────────────────────────────────────────
+    const editAllBtn = document.getElementById('editAllBtn');
+    if (editAllBtn) {
+      let allOpen = false;
+      editAllBtn.addEventListener('click', function () {
+        allOpen = !allOpen;
+        document.querySelectorAll('[data-deck-card]').forEach(function (article) {
+          allOpen ? openCard(article) : closeCard(article);
+        });
+        editAllBtn.textContent = allOpen ? '✕ Done editing' : 'Edit mode';
+        editAllBtn.classList.toggle('btnSecondary', !allOpen);
+        editAllBtn.style.borderColor = allOpen ? 'rgba(124,196,255,0.6)' : '';
+        editAllBtn.style.color       = allOpen ? 'var(--accent)' : '';
+      });
+    }
+  })();
+  </script>
 
 </body>
 </html>

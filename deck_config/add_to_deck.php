@@ -73,6 +73,16 @@ $imageNormal = trim((string)($_POST['image_normal'] ?? ''));
 $priceUsd = to_nullable_decimal_2((string)($_POST['price_usd'] ?? ''));
 $priceUsdFoil = to_nullable_decimal_2((string)($_POST['price_usd_foil'] ?? ''));
 $priceUsdEtched = to_nullable_decimal_2((string)($_POST['price_usd_etched'] ?? ''));
+$legalitiesRaw = trim((string)($_POST['legalities'] ?? ''));
+if ($legalitiesRaw === '') {
+  $legalities = null;
+} else {
+  $legalitiesDecoded = json_decode($legalitiesRaw, true);
+  if (!is_array($legalitiesDecoded)) {
+    back_to_deck($deckId, "Invalid legalities data.");
+  }
+  $legalities = json_encode($legalitiesDecoded, JSON_UNESCAPED_SLASHES);
+}
 
 if ($scryfallId === '' || strlen($scryfallId) > 36) back_to_deck($deckId, "Missing/invalid Scryfall card id.");
 if ($name === '' || strlen($name) > 255) back_to_deck($deckId, "Missing/invalid card name.");
@@ -84,9 +94,9 @@ try {
   $upsertCard = $pdo->prepare("
     INSERT INTO cards
       (scryfall_id, oracle_id, name, type_line, set_code, set_name, collector_number,
-       image_small, image_normal, price_usd, price_usd_foil, price_usd_etched, price_updated_at)
+       image_small, image_normal, price_usd, price_usd_foil, price_usd_etched, price_updated_at, legalities)
     VALUES
-      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
     ON DUPLICATE KEY UPDATE
       oracle_id = VALUES(oracle_id),
       name = VALUES(name),
@@ -99,7 +109,8 @@ try {
       price_usd = VALUES(price_usd),
       price_usd_foil = VALUES(price_usd_foil),
       price_usd_etched = VALUES(price_usd_etched),
-      price_updated_at = NOW()
+      price_updated_at = VALUES(price_updated_at),
+      legalities = VALUES(legalities)
   ");
   $upsertCard->execute([
     $scryfallId,
@@ -113,7 +124,8 @@ try {
     ($imageNormal !== '' ? $imageNormal : null),
     $priceUsd,
     $priceUsdFoil,
-    $priceUsdEtched
+    $priceUsdEtched,
+    $legalities
   ]);
 
   $getCardId = $pdo->prepare("SELECT id FROM cards WHERE scryfall_id = ? LIMIT 1");

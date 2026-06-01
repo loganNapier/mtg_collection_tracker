@@ -53,19 +53,24 @@ This application lets users:
 - `batch_add.php` — add many collection items at once
 - `decks.php` — deck list and navigation
 - `deck.php` — single deck detail and card management
-- `create_deck.php` — create a new deck
-- `delete_deck.php` — delete a deck
-- `add_to_collection.php` — add a card to the user collection
-- `add_to_deck.php` — add a card to a deck
 - `import_deck.php` — import decks
-- `update_collection_item.php` — update collection item details
-- `update_deck_card.php` — update cards in a deck
+
+## Action endpoints and config
+
+- `collection_config/add_to_collection.php` — add a card to the user collection
+- `collection_config/update_collection_item.php` — update collection item details
+- `collection_config/export_collection.php` — export collection data
+- `deck_config/create_deck.php` — create a new deck
+- `deck_config/delete_deck.php` — delete a deck
+- `deck_config/add_to_deck.php` — add a card to a deck
+- `deck_config/update_deck_card.php` — update cards in a deck
 
 ## Supporting files and directories
 
 - `config.php` — database connection setup and session initialization
 - `schema.sql` — database schema and table definitions
 - `auth/` — authentication helper functions and config
+- `users/` — login, logout, and registration actions
 - `css/` — stylesheet files for pages
 - `js/` — client-side JavaScript for deck behavior
 - `partials/` — shared UI fragments (`header.php`, `footer.php`)

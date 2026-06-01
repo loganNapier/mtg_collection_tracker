@@ -1,6 +1,7 @@
 <?php
 /**
  * cards.php
+ * Author: Logan Napier
  * ---------------------------------------------------------------------------
  * Card browsing/search page using the Scryfall API.
  *
@@ -449,6 +450,7 @@ function resultHTML(card){
         <input type="hidden" name="price_usd" value="${esc(usd)}">
         <input type="hidden" name="price_usd_foil" value="${esc(usdFoil)}">
         <input type="hidden" name="price_usd_etched" value="${esc(usdEtched)}">
+        <input type="hidden" name="legalities" value="${esc(card.legalities && typeof card.legalities === 'object' ? JSON.stringify(card.legalities) : '')}">
 
         <!-- Quantity -->
         <div>

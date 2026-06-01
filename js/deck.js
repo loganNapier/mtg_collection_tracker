@@ -102,6 +102,7 @@ console.log('deck.js has been read');
               <input type="hidden" name="price_usd" value="${esc(usd)}">
               <input type="hidden" name="price_usd_foil" value="${esc(usdFoil)}">
               <input type="hidden" name="price_usd_etched" value="${esc(usdEtched)}">
+              <input type="hidden" name="legalities" value="${esc(card.legalities && typeof card.legalities === 'object' ? JSON.stringify(card.legalities) : '')}">
 
               <div class="addControls" aria-label="Add card options">
                 <div>

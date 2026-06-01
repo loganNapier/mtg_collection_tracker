@@ -391,6 +391,58 @@ footer {
   color: var(--muted);
   padding: 14px 0;
 }
+
+/* ── Card view/edit toggle ───────────────────────────────────────────────── */
+
+/* Compact row shown when NOT editing */
+.cardViewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Thumb keeps its hover-popup behaviour */
+.cardViewRow .thumbWrap {
+  flex-shrink: 0;
+}
+
+/* Name/type/price fill remaining space */
+.cardViewInfo {
+  flex: 1;
+  min-width: 0;
+}
+.cardViewInfo .name {
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Qty badge + Edit button pushed to the right */
+.cardViewRight {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qtyBadge {
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--accent);
+  min-width: 2ch;
+  text-align: right;
+}
+
+/* Smooth reveal of edit panel */
+.cardEditPanel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.cardEditPanel[hidden] {
+  display: none;
+}
 /* Media Queries */
 
 @media  (min-width: 900px) {
