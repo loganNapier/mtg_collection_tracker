@@ -434,7 +434,7 @@ include 'partials/header.php';
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
             <h2 id="listTitle" style="margin:0;">Decklist</h2>
             <button type="button" id="editAllBtn" class="btnSecondary" style="font-size:0.9rem;padding:7px 14px;">
-              ✏️ Edit mode
+               Edit mode
             </button>
           </div>
 
@@ -652,10 +652,10 @@ include 'partials/header.php';
         document.querySelectorAll('[data-deck-card]').forEach(function (article) {
           allOpen ? openCard(article) : closeCard(article);
         });
-        editAllBtn.textContent = allOpen ? '✕ Done editing' : 'Edit mode';
-        editAllBtn.classList.toggle('btnSecondary', !allOpen);
-        editAllBtn.style.borderColor = allOpen ? 'rgba(124,196,255,0.6)' : '';
-        editAllBtn.style.color       = allOpen ? 'var(--accent)' : '';
+        editAllBtn.textContent = allOpen ? '✕ Done editing' : ' Edit mode';
+        editAllBtn.style.background  = 'transparent';
+        editAllBtn.style.color       = allOpen ? 'var(--accent)' : 'var(--text)';
+        editAllBtn.style.borderColor = allOpen ? 'rgba(124,196,255,0.6)' : 'var(--border)';
       });
     }
   })();
